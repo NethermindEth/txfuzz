@@ -24,9 +24,7 @@ const (
 	AIRDROP_PERIOD       = 3 * time.Minute
 )
 
-var (
-	gasTipCap = common.Big1
-)
+var gasTipCap = common.Big1
 
 type TxFuzzer struct {
 	key     *ecdsa.PrivateKey

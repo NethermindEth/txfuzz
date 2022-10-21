@@ -45,7 +45,3 @@ func deriveAccounts(mnemonic string, startIdx, endIdx uint32) ([]*ecdsa.PrivateK
 
 	return keys, addrs
 }
-
-func fundAccount(addr common.Address) {
-
-}

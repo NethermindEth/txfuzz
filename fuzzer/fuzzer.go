@@ -47,16 +47,16 @@ func NewFuzzer(rpcUrl string, key *ecdsa.PrivateKey) *TxFuzzer {
 		logger.Default().Fatalf("Could not get chainId from rpc: %v", err)
 	}
 
-    fuzzer := &TxFuzzer{
+	fuzzer := &TxFuzzer{
 		key:     key,
 		client:  client,
 		chainId: chainId,
 	}
 
-    fuzzer.cooldown.Store(time.Second)
-    fuzzer.gasFeeCap.Store(new(big.Int).Add(big.NewInt(params.InitialBaseFee), common.Big1))
+	fuzzer.cooldown.Store(time.Second)
+	fuzzer.gasFeeCap.Store(new(big.Int).Add(big.NewInt(params.InitialBaseFee), common.Big1))
 
-    return fuzzer
+	return fuzzer
 }
 
 func (fuzzer *TxFuzzer) Fuzz(randomSeed int64, mnemonic string, startIdx, endIdx uint32) {
@@ -103,13 +103,14 @@ func (fuzzer *TxFuzzer) StartFuzzingFrom(key *ecdsa.PrivateKey, addr common.Addr
 			continue
 		}
 
-        logger.Verbose().Printf("Sent tx{sender: %v, nonce: %v}\n", addr, signedTx.Nonce())
+		logger.Verbose().Printf("Sent tx{sender: %v, nonce: %v}\n", addr, signedTx.Nonce())
 		time.Sleep(fuzzer.Cooldown())
 	}
 }
 
 func (fuzzer *TxFuzzer) ScheduleAirdrops(addrs []common.Address) {
 	go func() {
+		fuzzer.doAirdrop(addrs)
 		for range time.Tick(AIRDROP_PERIOD) {
 			fuzzer.doAirdrop(addrs)
 		}

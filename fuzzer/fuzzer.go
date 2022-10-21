@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	TX_GAS_LIMIT         = 10000
+	TX_GAS_LIMIT         = 100000
 	AIRDROP_TARGET_VALUE = 100
 	AIRDROP_PERIOD       = 3 * time.Minute
 )
@@ -48,11 +48,16 @@ func NewFuzzer(rpcUrl string, key *ecdsa.PrivateKey) *TxFuzzer {
 		logger.Default().Fatalf("Could not get chainId from rpc: %v", err)
 	}
 
-	return &TxFuzzer{
+    fuzzer := &TxFuzzer{
 		key:     key,
 		client:  client,
 		chainId: chainId,
 	}
+
+    fuzzer.cooldown.Store(time.Second)
+    fuzzer.gasFeeCap.Store(new(big.Int).Add(big.NewInt(params.InitialBaseFee), common.Big1))
+
+    return fuzzer
 }
 
 func (fuzzer *TxFuzzer) Fuzz(randomSeed int64, mnemonic string, startIdx, endIdx uint32) {
@@ -99,6 +104,7 @@ func (fuzzer *TxFuzzer) StartFuzzingFrom(key *ecdsa.PrivateKey, addr common.Addr
 			continue
 		}
 
+        logger.Verbose().Printf("Sent tx{sender: %v, nonce: %v}\n", addr, signedTx.Nonce())
 		time.Sleep(fuzzer.Cooldown())
 	}
 }

@@ -13,6 +13,7 @@ func randomTxData(f *filler.Filler, nonce uint64, gasFeeCap, gasTipCap *big.Int)
 	to := randomAddr(f)
 	code := randomCode(f)
 	value := randomValue(f)
+    gasLimit := f.GasInt().Uint64()
 
 	switch f.Byte() % byte(4) {
 	case 0:
@@ -20,7 +21,7 @@ func randomTxData(f *filler.Filler, nonce uint64, gasFeeCap, gasTipCap *big.Int)
 		return &types.LegacyTx{
 			Nonce:    nonce,
 			Value:    value,
-			Gas:      TX_GAS_LIMIT,
+			Gas:      gasLimit,
 			GasPrice: gasFeeCap,
 			Data:     code,
 		}
@@ -30,7 +31,7 @@ func randomTxData(f *filler.Filler, nonce uint64, gasFeeCap, gasTipCap *big.Int)
 			Nonce:    nonce,
 			To:       &to,
 			Value:    value,
-			Gas:      TX_GAS_LIMIT,
+			Gas:      gasLimit,
 			GasPrice: gasFeeCap,
 		}
 	case 2:
@@ -39,7 +40,7 @@ func randomTxData(f *filler.Filler, nonce uint64, gasFeeCap, gasTipCap *big.Int)
 			Nonce:     nonce,
 			GasTipCap: gasTipCap,
 			GasFeeCap: gasFeeCap,
-			Gas:       TX_GAS_LIMIT,
+			Gas:       gasLimit,
 			To:        nil,
 			Value:     value,
 			Data:      code,
@@ -50,7 +51,7 @@ func randomTxData(f *filler.Filler, nonce uint64, gasFeeCap, gasTipCap *big.Int)
 			Nonce:     nonce,
 			GasTipCap: gasTipCap,
 			GasFeeCap: gasFeeCap,
-			Gas:       TX_GAS_LIMIT,
+			Gas:       gasLimit,
 			To:        &to,
 			Value:     value,
 			Data:      code,

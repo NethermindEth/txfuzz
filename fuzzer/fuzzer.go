@@ -20,7 +20,6 @@ import (
 )
 
 const (
-	TX_GAS_LIMIT         = 100000
 	AIRDROP_TARGET_VALUE = 100
 	AIRDROP_PERIOD       = 3 * time.Minute
 )

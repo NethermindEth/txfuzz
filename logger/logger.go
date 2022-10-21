@@ -12,7 +12,7 @@ var (
 )
 
 func init() {
-	verboseLogger = log.New(io.Discard, "VERBOSE", log.Ldate|log.Ltime|log.LUTC|log.Lshortfile)
+	verboseLogger = log.New(io.Discard, "VERBOSE ", log.Ldate|log.Ltime|log.LUTC|log.Lshortfile)
 	defaultLogger = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.LUTC|log.Lshortfile)
 }
 

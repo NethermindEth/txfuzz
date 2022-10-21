@@ -16,18 +16,18 @@ import (
 
 func main() {
 	if len(os.Args) == 1 {
-		log.Fatalf("%v <command> <rpc-url> <hex-formatted-pvkey> <mnemonic> <start..end> [<hex-formatted-seed>] [<bool-verbose>]\n", os.Args[0])
+		log.Fatalf("%v <rpc-url> <hex-formatted-pvkey> <mnemonic> <start..end> [<hex-formatted-seed>] [<bool-verbose>]\n", os.Args[0])
 	}
 
-	if len(os.Args) < 6 || len(os.Args) > 8 {
-		log.Fatalln("invalid amount of args, need from 6 to 8 args")
+	if len(os.Args) < 5 || len(os.Args) > 7 {
+		log.Fatalln("invalid amount of args, need from 5 to 7 args")
 	}
 
-	url := os.Args[2]
-	key := crypto.ToECDSAUnsafe(common.FromHex(os.Args[3]))
-	mnemonic := os.Args[4]
+	url := os.Args[1]
+	key := crypto.ToECDSAUnsafe(common.FromHex(os.Args[2]))
+	mnemonic := os.Args[3]
 
-	startIdxStr, endIdxStr, isRange := strings.Cut(os.Args[5], "..")
+	startIdxStr, endIdxStr, isRange := strings.Cut(os.Args[4], "..")
 	startIdx, err := strconv.Atoi(startIdxStr)
 	if err != nil {
 		log.Default().Fatalf("Couldn't parse mnemonic range start: %v\n", err)
@@ -41,9 +41,9 @@ func main() {
 	}
 
 	var seed int64
-	if len(os.Args) > 6 {
+	if len(os.Args) > 5 {
 		log.Default().Println("Using provided seed")
-		a := common.LeftPadBytes(common.FromHex(os.Args[6]), 8)
+		a := common.LeftPadBytes(common.FromHex(os.Args[5]), 8)
 		seed = int64(binary.BigEndian.Uint64(a))
 	} else {
 		log.Default().Println("No seed provided, creating one")
@@ -52,8 +52,8 @@ func main() {
 		seed = int64(binary.BigEndian.Uint64(rnd))
 	}
 
-	if len(os.Args) > 7 {
-		verbose, err := strconv.ParseBool(os.Args[7])
+	if len(os.Args) > 6 {
+		verbose, err := strconv.ParseBool(os.Args[6])
 		if err != nil {
 			logger.Default().Fatalf("Couldn't parse verbosity flag: %v\n", err)
 		}

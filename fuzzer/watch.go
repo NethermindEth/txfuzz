@@ -80,6 +80,7 @@ func (fuzzer *TxFuzzer) StartWatching(addrs []common.Address) {
 	}()
 
 	// <-waitCh
+    time.Sleep(5*time.Second)
 }
 
 func (fuzzer *TxFuzzer) GasFeeCap() *big.Int {

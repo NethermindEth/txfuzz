@@ -92,7 +92,7 @@ func (fuzzer *TxFuzzer) StartFuzzingFrom(key *ecdsa.PrivateKey, addr common.Addr
 
 		txData := randomTxData(f, nonce, fuzzer.GasFeeCap(), gasTipCap)
 		signer := types.NewLondonSigner(fuzzer.chainId)
-		signedTx, err := types.SignNewTx(fuzzer.key, signer, txData)
+		signedTx, err := types.SignNewTx(key, signer, txData)
 		if err != nil {
 			logger.Default().Fatalf("Could not sign new transaction: %v\n", err)
 		}

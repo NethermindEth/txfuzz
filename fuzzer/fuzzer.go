@@ -108,8 +108,8 @@ func (fuzzer *TxFuzzer) StartFuzzingFrom(key *ecdsa.PrivateKey, addr common.Addr
 }
 
 func (fuzzer *TxFuzzer) ScheduleAirdrops(addrs []common.Address) {
+    fuzzer.doAirdrop(addrs)
 	go func() {
-		fuzzer.doAirdrop(addrs)
 		for range time.Tick(AIRDROP_PERIOD) {
 			fuzzer.doAirdrop(addrs)
 		}

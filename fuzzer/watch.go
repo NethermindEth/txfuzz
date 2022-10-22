@@ -61,12 +61,13 @@ func (fuzzer *TxFuzzer) StartWatching(addrs []common.Address) {
 				cooldown := fuzzer.Cooldown()
 				gasUsage := 100 * block.GasUsed() / block.GasLimit()
 				if new(big.Int).Mul(gasFeeCap, new(big.Int).SetUint64(block.GasLimit())).Cmp(fullBlockMaxCost) > 0 {
-					fuzzer.cooldown.Store(cooldown * 2)
+					cooldown *= 2
 				} else if gasUsage < 70 {
-					fuzzer.cooldown.Store(cooldown / 2)
+					cooldown /= 2
 				}
+				fuzzer.cooldown.Store(cooldown)
 
-				log.Default().Printf("Included %v transaction in block %v - block gas usage was %v percent\n", watchedTxsCount, block.NumberU64(), gasUsage)
+				log.Default().Printf("Included %v transaction in block %v - block gas usage was %v percent - sending transaction every %v\n", watchedTxsCount, block.NumberU64(), gasUsage, cooldown)
 
 				if waitCh != nil {
 					close(waitCh)

@@ -140,7 +140,7 @@ func (fuzzer *TxFuzzer) doAirdrop(addrs []common.Address) {
 			ChainID:   fuzzer.chainId,
 			Nonce:     nonce,
 			GasTipCap: new(big.Int).Mul(gasTipCap, common.Big2),
-			GasFeeCap: fuzzer.GasFeeCap(),
+			GasFeeCap: new(big.Int).Mul(fuzzer.GasFeeCap(), common.Big2),
 			Gas:       params.TxGas,
 			To:        &to,
 			Value:     value,
@@ -150,7 +150,7 @@ func (fuzzer *TxFuzzer) doAirdrop(addrs []common.Address) {
 			logger.Default().Fatalf("Couldn't sign transaction for airdrop: %v\n", err)
 		}
 		if err := fuzzer.client.SendTransaction(context.Background(), signedTx); err != nil {
-			logger.Default().Fatalf("Couldn't send airdrop transactino: %v\n", err)
+			logger.Default().Fatalf("Couldn't send airdrop transaction: %v\n", err)
 		}
 		lastTx = signedTx
 	}

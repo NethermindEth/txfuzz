@@ -82,13 +82,12 @@ func (fuzzer *TxFuzzer) Fuzz(randomSeed int64, mnemonic string, startIdx, endIdx
 }
 
 func (fuzzer *TxFuzzer) StartFuzzingFrom(key *ecdsa.PrivateKey, addr common.Address, f *filler.Filler) {
-	for {
-		nonce, err := fuzzer.client.PendingNonceAt(context.Background(), addr)
-		if err != nil {
-			logger.Verbose().Printf("Could not get nonce: %v\n", err)
-			continue
-		}
+	nonce, err := fuzzer.client.PendingNonceAt(context.Background(), addr)
+	if err != nil {
+		logger.Verbose().Printf("Could not get nonce: %v\n", err)
+	}
 
+	for {
 		txData := randomTxData(f, nonce, fuzzer.GasFeeCap(), gasTipCap)
 		signer := types.NewLondonSigner(fuzzer.chainId)
 		signedTx, err := types.SignNewTx(key, signer, txData)
@@ -104,6 +103,7 @@ func (fuzzer *TxFuzzer) StartFuzzingFrom(key *ecdsa.PrivateKey, addr common.Addr
 
 		logger.Verbose().Printf("Sent tx{sender: %v, nonce: %v}\n", addr, signedTx.Nonce())
 		time.Sleep(fuzzer.Cooldown())
+        nonce++
 	}
 }
 

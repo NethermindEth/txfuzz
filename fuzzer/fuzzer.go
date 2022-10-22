@@ -98,17 +98,22 @@ func (fuzzer *TxFuzzer) StartFuzzingFrom(key *ecdsa.PrivateKey, addr common.Addr
 		if err = fuzzer.client.SendTransaction(context.Background(), signedTx); err != nil {
 			logger.Verbose().Printf("Could not send tx{sender: %v, nonce: %v}: %v\n", addr, signedTx.Nonce(), err)
 			// time.Sleep(time.Second)
+			rectifiedNonce, err := fuzzer.client.PendingNonceAt(context.Background(), addr)
+			if err != nil {
+				logger.Verbose().Printf("Could not get nonce: %v\n", err)
+			}
+			nonce = rectifiedNonce
 			continue
 		}
 
 		logger.Verbose().Printf("Sent tx{sender: %v, nonce: %v}\n", addr, signedTx.Nonce())
 		time.Sleep(fuzzer.Cooldown())
-        nonce++
+		nonce++
 	}
 }
 
 func (fuzzer *TxFuzzer) ScheduleAirdrops(addrs []common.Address) {
-    fuzzer.doAirdrop(addrs)
+	fuzzer.doAirdrop(addrs)
 	go func() {
 		for range time.Tick(AIRDROP_PERIOD) {
 			fuzzer.doAirdrop(addrs)
@@ -157,7 +162,7 @@ func (fuzzer *TxFuzzer) doAirdrop(addrs []common.Address) {
 	}
 	if lastTx == nil {
 		logger.Default().Printf("Airdrop finished without airdropping anything")
-        return
+		return
 	}
 	// Wait for the last transaction to be mined
 	bind.WaitMined(context.Background(), fuzzer.client, lastTx)

@@ -98,7 +98,7 @@ func (fuzzer *TxFuzzer) StartFuzzingFrom(key *ecdsa.PrivateKey, addr common.Addr
 
 		if err = fuzzer.client.SendTransaction(context.Background(), signedTx); err != nil {
 			logger.Verbose().Printf("Could not send tx{sender: %v, nonce: %v}: %v\n", addr, signedTx.Nonce(), err)
-			time.Sleep(time.Second)
+			// time.Sleep(time.Second)
 			continue
 		}
 

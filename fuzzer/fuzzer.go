@@ -156,7 +156,8 @@ func (fuzzer *TxFuzzer) doAirdrop(addrs []common.Address) {
 		lastTx = signedTx
 	}
 	if lastTx == nil {
-		logger.Default().Fatalf("Airdrop failed")
+		logger.Default().Printf("Airdrop finished without airdropping anything")
+        return
 	}
 	// Wait for the last transaction to be mined
 	bind.WaitMined(context.Background(), fuzzer.client, lastTx)

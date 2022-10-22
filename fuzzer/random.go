@@ -13,7 +13,7 @@ func randomTxData(f *filler.Filler, nonce uint64, gasFeeCap, gasTipCap *big.Int)
 	to := randomAddr(f)
 	code := randomCode(f)
 	value := randomValue(f)
-	gasLimit := f.GasInt().Uint64()
+	gasLimit := TX_GAS_LIMIT
 
 	switch f.Byte() % byte(4) {
 	case 0:

@@ -22,6 +22,7 @@ import (
 const (
 	AIRDROP_TARGET_VALUE = 100
 	AIRDROP_PERIOD       = 3 * time.Minute
+	TX_GAS_LIMIT         = uint64(300000) // about 100 txs to fill a 30 million gas limit block
 )
 
 var gasTipCap = common.Big1

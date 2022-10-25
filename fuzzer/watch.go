@@ -63,7 +63,7 @@ func (fuzzer *TxFuzzer) StartWatching(addrs []common.Address) {
 				if new(big.Int).Mul(gasFeeCap, new(big.Int).SetUint64(block.GasLimit())).Cmp(fullBlockMaxCost) > 0 {
 					cooldown *= 2
 				} else if gasUsage < 70 {
-					cooldown = cooldown / 2 + 1 
+					cooldown = cooldown/2 + 1
 				}
 				fuzzer.cooldown.Store(cooldown)
 

@@ -21,7 +21,7 @@ import (
 
 const (
 	AIRDROP_TARGET_VALUE = 100
-	AIRDROP_PERIOD       = 3 * time.Minute
+	AIRDROP_PERIOD       = 30 * time.Second
 	TX_GAS_LIMIT         = uint64(300000) // about 100 txs to fill a 30 million gas limit block
 )
 
@@ -95,12 +95,14 @@ func (fuzzer *TxFuzzer) StartFuzzingFrom(key *ecdsa.PrivateKey, addr common.Addr
 			logger.Default().Fatalf("Could not sign new transaction: %v\n", err)
 		}
 
-		if err = fuzzer.client.SendTransaction(context.Background(), signedTx); err != nil {
+		if err = fuzzer.sendTx(signedTx); err != nil {
 			logger.Verbose().Printf("Could not send tx{sender: %v, nonce: %v}: %v\n", addr, signedTx.Nonce(), err)
-			// time.Sleep(time.Second)
+			// sometimes tx sending fails because of nonce gap, most likely because some transactions
+			// that were in the pool at the moment of asking for nonce to the node were invalidated
+			// (probably because of baseFee increase and new txs being submitted)
 			rectifiedNonce, err := fuzzer.client.PendingNonceAt(context.Background(), addr)
 			if err != nil {
-				logger.Verbose().Printf("Could not get nonce: %v\n", err)
+				logger.Default().Fatalf("Could not get nonce: %v\n", err)
 			}
 			nonce = rectifiedNonce
 			continue
@@ -155,8 +157,9 @@ func (fuzzer *TxFuzzer) doAirdrop(addrs []common.Address) {
 		if err != nil {
 			logger.Default().Fatalf("Couldn't sign transaction for airdrop: %v\n", err)
 		}
-		if err := fuzzer.client.SendTransaction(context.Background(), signedTx); err != nil {
-			logger.Default().Fatalf("Couldn't send airdrop transaction: %v\n", err)
+		for err = fuzzer.sendTx(signedTx); err != nil; err = fuzzer.sendTx(signedTx) {
+			logger.Default().Printf("Couldn't send airdrop transaction: %v\n", err)
+			time.Sleep(5 * time.Second)
 		}
 		lastTx = signedTx
 	}
@@ -167,4 +170,8 @@ func (fuzzer *TxFuzzer) doAirdrop(addrs []common.Address) {
 	// Wait for the last transaction to be mined
 	bind.WaitMined(context.Background(), fuzzer.client, lastTx)
 	logger.Default().Println("Airdrop succesful")
+}
+
+func (fuzzer *TxFuzzer) sendTx(signedTx *types.Transaction) error {
+	return fuzzer.client.SendTransaction(context.Background(), signedTx)
 }

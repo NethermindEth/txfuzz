@@ -15,47 +15,63 @@ func randomTxData(f *filler.Filler, nonce uint64, gasFeeCap, gasTipCap *big.Int)
 	value := randomValue(f)
 	gasLimit := TX_GAS_LIMIT
 
+	legacyContractCreation := &types.LegacyTx{
+		Nonce:    nonce,
+		Value:    value,
+		Gas:      gasLimit,
+		GasPrice: gasFeeCap,
+		Data:     code,
+	}
+
+	legacyTransaction := &types.LegacyTx{
+		Nonce:    nonce,
+		To:       &to,
+		Value:    value,
+		Gas:      gasLimit,
+		GasPrice: gasFeeCap,
+	}
+
+	eip1559ContractCreation := &types.DynamicFeeTx{
+		Nonce:     nonce,
+		GasTipCap: gasTipCap,
+		GasFeeCap: gasFeeCap,
+		Gas:       gasLimit,
+		To:        nil,
+		Value:     value,
+		Data:      code,
+	}
+
+	eip1559Transaction := &types.DynamicFeeTx{
+		Nonce:     nonce,
+		GasTipCap: gasTipCap,
+		GasFeeCap: gasFeeCap,
+		Gas:       gasLimit,
+		To:        &to,
+		Value:     value,
+		Data:      code,
+	}
+
 	switch f.Byte() % byte(4) {
 	case 0:
 		// Legacy contract creation
-		return &types.LegacyTx{
-			Nonce:    nonce,
-			Value:    value,
-			Gas:      gasLimit,
-			GasPrice: gasFeeCap,
-			Data:     code,
+		if ALLOW_LEGACY_TXS {
+			return legacyContractCreation
+		} else {
+			return eip1559ContractCreation
 		}
 	case 1:
 		// Legacy transaction
-		return &types.LegacyTx{
-			Nonce:    nonce,
-			To:       &to,
-			Value:    value,
-			Gas:      gasLimit,
-			GasPrice: gasFeeCap,
+		if ALLOW_LEGACY_TXS {
+			return legacyTransaction
+		} else {
+			return eip1559Transaction
 		}
 	case 2:
 		// 1559 contract creation
-		return &types.DynamicFeeTx{
-			Nonce:     nonce,
-			GasTipCap: gasTipCap,
-			GasFeeCap: gasFeeCap,
-			Gas:       gasLimit,
-			To:        nil,
-			Value:     value,
-			Data:      code,
-		}
+		return eip1559ContractCreation
 	case 3:
 		// 1559 transaction
-		return &types.DynamicFeeTx{
-			Nonce:     nonce,
-			GasTipCap: gasTipCap,
-			GasFeeCap: gasFeeCap,
-			Gas:       gasLimit,
-			To:        &to,
-			Value:     value,
-			Data:      code,
-		}
+		return eip1559Transaction
 	default:
 		panic("unreachable")
 	}

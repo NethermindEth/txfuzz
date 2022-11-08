@@ -32,9 +32,11 @@ func (fuzzer *TxFuzzer) StartWatching(addrs []common.Address) {
 
 	go func() {
 		var (
-			gasUsageSum   uint64
-			gasUsageCount uint64
+			gasUsageHist [5]uint64
+			gasUsageSum  uint64
+			goingDown    bool
 		)
+		missingHist := len(gasUsageHist)
 		for {
 			select {
 			case err := <-headSub.Err():
@@ -43,6 +45,10 @@ func (fuzzer *TxFuzzer) StartWatching(addrs []common.Address) {
 				block, err := fuzzer.client.BlockByHash(context.Background(), header.Hash())
 				if err != nil {
 					logger.Default().Fatalf("Could not get block %v from rpc: %v\n", header.Number, err)
+				}
+
+				if missingHist > 0 {
+					missingHist--
 				}
 
 				watchedTxsCount := 0
@@ -61,22 +67,34 @@ func (fuzzer *TxFuzzer) StartWatching(addrs []common.Address) {
 				gasFeeCap.Mul(gasFeeCap, big.NewInt(110))
 				gasFeeCap.Div(gasFeeCap, big.NewInt(100))
 				fuzzer.gasFeeCap.Store(gasFeeCap)
+
+				if new(big.Int).Mul(gasFeeCap, new(big.Int).SetUint64(block.GasLimit())).Cmp(fullBlockMaxCost) > 0 {
+					goingDown = true
+				} else if goingDown {
+					goingDown = gasFeeCap.Cmp(big.NewInt(500)) < 0
+				}
+
 				// fix cooldown accordingly
 				cooldown := fuzzer.Cooldown()
 				gasUsage := 100 * block.GasUsed() / block.GasLimit()
-				gasUsageCount += 1
-				gasUsageSum += gasUsage
-				if gasUsageCount > 5 {
-					gasUsageAvg := gasUsageSum / gasUsageCount
-					if new(big.Int).Mul(gasFeeCap, new(big.Int).SetUint64(block.GasLimit())).Cmp(fullBlockMaxCost) > 0 {
-						cooldown *= 2
-						fuzzer.cooldown.Store(cooldown)
-					} else if gasUsageAvg < 70 {
-						cooldown = cooldown/2 + 1
-						fuzzer.cooldown.Store(cooldown)
+				gasUsageIdx := block.NumberU64() % uint64(len(gasUsageHist))
+				gasUsageSum -= gasUsageHist[gasUsageIdx]
+				gasUsageHist[gasUsageIdx] = gasUsage
+				gasUsageSum += gasUsageHist[gasUsageIdx]
+				if missingHist <= 0 {
+					gasUsageAvg := gasUsageSum / uint64(len(gasUsageHist))
+
+					if goingDown {
+						if gasUsageAvg > 40 {
+							cooldown *= 2
+							fuzzer.cooldown.Store(cooldown)
+						}
+					} else {
+						if gasUsageAvg < 70 {
+							cooldown = cooldown/2 + 1
+							fuzzer.cooldown.Store(cooldown)
+						}
 					}
-					gasUsageCount = 0
-					gasUsageSum = 0
 				}
 
 				log.Default().Printf("Included %v transaction in block %v - block gas usage was %v percent - sending transaction every %v\n", watchedTxsCount, block.NumberU64(), gasUsage, cooldown)

@@ -110,7 +110,10 @@ func (fuzzer *TxFuzzer) StartFuzzingFrom(key *ecdsa.PrivateKey, addr common.Addr
 		}
 
 		logger.Verbose().Printf("Sent tx{sender: %v, nonce: %v}\n", addr, signedTx.Nonce())
-		time.Sleep(fuzzer.Cooldown())
+		cooldown := fuzzer.Cooldown()
+		if cooldown > 10*time.Millisecond {
+			time.Sleep(cooldown)
+		}
 		nonce++
 	}
 }

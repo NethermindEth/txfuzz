@@ -31,6 +31,10 @@ func (fuzzer *TxFuzzer) StartWatching(addrs []common.Address) {
 	}
 
 	go func() {
+		var (
+			gasUsageSum   uint64
+			gasUsageCount uint64
+		)
 		for {
 			select {
 			case err := <-headSub.Err():
@@ -60,12 +64,20 @@ func (fuzzer *TxFuzzer) StartWatching(addrs []common.Address) {
 				// fix cooldown accordingly
 				cooldown := fuzzer.Cooldown()
 				gasUsage := 100 * block.GasUsed() / block.GasLimit()
-				if new(big.Int).Mul(gasFeeCap, new(big.Int).SetUint64(block.GasLimit())).Cmp(fullBlockMaxCost) > 0 {
-					cooldown *= 2
-				} else if gasUsage < 70 {
-					cooldown = cooldown/2 + 1
+				gasUsageCount += 1
+				gasUsageSum += gasUsage
+				if gasUsageCount > 5 {
+					gasUsageAvg := gasUsageSum / gasUsageCount
+					if new(big.Int).Mul(gasFeeCap, new(big.Int).SetUint64(block.GasLimit())).Cmp(fullBlockMaxCost) > 0 {
+						cooldown *= 2
+						fuzzer.cooldown.Store(cooldown)
+					} else if gasUsageAvg < 70 {
+						cooldown = cooldown/2 + 1
+						fuzzer.cooldown.Store(cooldown)
+					}
+					gasUsageCount = 0
+					gasUsageSum = 0
 				}
-				fuzzer.cooldown.Store(cooldown)
 
 				log.Default().Printf("Included %v transaction in block %v - block gas usage was %v percent - sending transaction every %v\n", watchedTxsCount, block.NumberU64(), gasUsage, cooldown)
 
@@ -81,7 +93,11 @@ func (fuzzer *TxFuzzer) StartWatching(addrs []common.Address) {
 }
 
 func (fuzzer *TxFuzzer) GasFeeCap() *big.Int {
-	return fuzzer.gasFeeCap.Load().(*big.Int)
+	// return fuzzer.gasFeeCap.Load().(*big.Int)
+	return new(big.Int).Div(
+		new(big.Int).Mul(big.NewInt(AIRDROP_TARGET_VALUE/3), big.NewInt(params.Ether)),
+		new(big.Int).SetUint64(TX_GAS_LIMIT),
+	)
 }
 
 func (fuzzer *TxFuzzer) Cooldown() time.Duration {

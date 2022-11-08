@@ -71,7 +71,7 @@ func (fuzzer *TxFuzzer) StartWatching(addrs []common.Address) {
 				if new(big.Int).Mul(gasFeeCap, new(big.Int).SetUint64(block.GasLimit())).Cmp(fullBlockMaxCost) > 0 {
 					goingDown = true
 				} else if goingDown {
-					goingDown = gasFeeCap.Cmp(big.NewInt(500)) < 0
+					goingDown = gasFeeCap.Cmp(big.NewInt(500)) > 0
 				}
 
 				// fix cooldown accordingly

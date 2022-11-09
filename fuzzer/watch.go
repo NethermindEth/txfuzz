@@ -97,7 +97,7 @@ func (fuzzer *TxFuzzer) StartWatching(addrs []common.Address) {
 					}
 				}
 
-				log.Default().Printf("Included %v transaction in block %v - block gas usage was %v percent - sending transaction every %v\n", watchedTxsCount, block.NumberU64(), gasUsage, cooldown)
+				log.Default().Printf("Included %v transaction in block %v - block gas usage was %v percent - sending transaction every %v -> (%v, %v)\n", watchedTxsCount, block.NumberU64(), gasUsage, cooldown, goingDown, missingHist)
 
 				if waitCh != nil {
 					close(waitCh)

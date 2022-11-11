@@ -172,6 +172,7 @@ func (fuzzer *TxFuzzer) doAirdrop(addrs []common.Address) {
 		return
 	}
 	// Wait for the last transaction to be mined
+	logger.Default().Println("Waiting for airdrop")
 	bind.WaitMined(context.Background(), fuzzer.client, lastTx)
 	logger.Default().Println("Airdrop succesful")
 }

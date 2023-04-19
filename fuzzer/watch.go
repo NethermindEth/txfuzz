@@ -43,6 +43,7 @@ func (fuzzer *TxFuzzer) StartWatching(addrs []common.Address) {
 				logger.Default().Fatalf("NewHead subscription error: %v\n", err)
 			case header := <-headCh:
 				block, err := fuzzer.client.BlockByHash(context.Background(), header.Hash())
+				// block, err := fuzzer.client.BlockByNumber(context.Background(), header.Number)
 				if err != nil {
 					logger.Default().Fatalf("Could not get block %v from rpc: %v\n", header.Number, err)
 				}

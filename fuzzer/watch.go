@@ -8,7 +8,7 @@ import (
 
 	"github.com/NethermindEth/tx-fuzz/logger"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/consensus/misc"
+	"github.com/ethereum/go-ethereum/consensus/misc/eip1559"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/params"
 )
@@ -63,7 +63,7 @@ func (fuzzer *TxFuzzer) StartWatching(addrs []common.Address) {
 				}
 
 				// fix next gas fee accordingly
-				gasFeeCap := misc.CalcBaseFee(&params.ChainConfig{LondonBlock: common.Big0}, block.Header())
+				gasFeeCap := eip1559.CalcBaseFee(&params.ChainConfig{LondonBlock: common.Big0}, block.Header())
 				gasFeeCap.Add(gasFeeCap, common.Big1)
 				gasFeeCap.Mul(gasFeeCap, big.NewInt(110))
 				gasFeeCap.Div(gasFeeCap, big.NewInt(100))
